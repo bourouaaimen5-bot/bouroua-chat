@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOUROUA Chat</title>
+    <!-- Tajawal and Poppins Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #000000;
+            --panel-bg: #121212;
+            --input-bg: #1A1A1A;
+            --primary-purple: #a855f7;
+            --neon-glow: 0 0 15px rgba(168, 85, 247, 0.4);
+            --bubble-purple: #8b5cf6;
+            --bubble-dark: #262626;
+            --text-light: #ffffff;
+            --text-gray: #a3a3a3;
+            --active-green: #22c55e;
+            --border-color: #262626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Container for Mobile view or responsive app layout */
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 500px) {
+            .app-container {
+                height: 90vh;
+                border-radius: 40px;
+                border: 4px solid var(--border-color);
+                overflow: hidden;
+            }
+        }
+
+        /* --- Screens System --- */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- 1. Login Screen --- */
+        #login-screen {
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: linear-gradient(180deg, #0a0118 0%, #000000 100%);
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-text {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(to left, #e879f9, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo-crown {
+            color: #facc15;
+            filter: drop-shadow(0 0 10px rgba(250,204,21,0.5));
+        }
+
+        .logo-sub {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-top: 5px;
+            letter-spacing: 3px;
+        }
+
+        .auth-card {
+            width: 100%;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--neon-glow);
+        }
+
+        .tabs-header {
+            display: flex;
+            background-color: var(--bg-dark);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-purple);
+            color: var(--text-light);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+        }
+
+        .input-box {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .input-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            background-color: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-light);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-box input:focus {
+            border-color: var(--primary-purple);
+            box-shadow: var(--neon-glow);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-purple);
+            border: none;
+            border-radius: 14px;
+            color: var(--text-light);
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--neon-glow);
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        /* --- 2. Main Chat Screen (Home / Direct) --- */
+        #chat-home-screen {
+            display: none;
+        }
+
+        .chat-header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--panel-bg);
+        }
+
+        .brand-logo {
+            font-weight: 900;
+            font-size: 1.5rem;
+            background: linear-gradient(to left, #e879f9, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            font-size: 1.3rem;
+        }
+
+        .header-actions i {
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .header-actions i:hover {
+            color: var(--primary-purple);
+        }
+
+        /* Search Box */
+        .search-container {
+            padding: 10px 15px;
+        }
+
+        .search-bar {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-light);
+            margin-right: 10px;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+
+        /* Stories Section ("Instants") */
+        .stories-wrapper {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .stories-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 75px;
+            cursor: pointer;
+        }
+
+        .story-ring {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .story-ring.my-note {
+            background: #444;
+        }
+
+        .story-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #222;
+            border: 3px solid var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .story-note {
+            position: absolute;
+            top: -5px;
+            background-color: #1e1b4b;
+            border: 1.5px solid var(--primary-purple);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            max-width: 65px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: var(--neon-glow);
+        }
+
+        .story-name {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            color: var(--text-gray);
+            text-align: center;
+            width: 70px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Chat list section */
+        .chat-list-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .section-tabs {
+            display: flex;
+            padding: 10px 15px 5px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            gap: 20px;
+        }
+
+        .section-tab-btn {
+            color: var(--text-gray);
+            cursor: pointer;
+            padding-bottom: 5px;
+        }
+
+        .section-tab-btn.active {
+            color: var(--text-light);
+            border-bottom: 2px solid var(--text-light);
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .user-row:hover {
+            background-color: var(--panel-bg);
+        }
+
+        .user-avatar-wrapper {
+            position: relative;
+            margin-left: 15px;
+        }
+
+        .user-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: var(--primary-purple);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .active-dot {
+            width: 14px;
+            height: 14px;
+            background-color: var(--active-green);
+            border: 3px solid var(--bg-dark);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+        }
+
+        .user-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-name-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-fullname {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .msg-time {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .last-msg {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        /* --- 3. Individual Chat Screen --- */
+        #active-chat-screen {
+            display: none;
+            background-color: var(--bg-dark);
+        }
+
+        .chat-room-header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .back-btn {
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-purple);
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            margin-right: 15px;
+        }
+
+        .chat-room-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--primary-purple);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .room-user-name {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .room-status {
+            font-size: 0.75rem;
+            color: var(--active-green);
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            width: 100%;
+        }
+
+        .message-wrapper.outgoing {
+            justify-content: flex-start; /* Right alignment since RTL */
+        }
+
+        .message-wrapper.incoming {
+            justify-content: flex-end; /* Left alignment since RTL */
+        }
+
+        .message-box {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 22px;
+            position: relative;
+            font-size: 0.98rem;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-wrapper.outgoing .message-box {
+            background-color: var(--bubble-purple);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .message-wrapper.incoming .message-box {
+            background-color: var(--bubble-dark);
+            color: white;
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-heart-reaction {
+            position: absolute;
+            bottom: -8px;
+            left: 10px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background-color: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-bar-container {
+            flex: 1;
+            background-color: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            padding: 5px 15px;
+        }
+
+        .input-bar-container input {
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            width: 100%;
+            padding: 10px 0;
+            font-size: 0.95rem;
+        }
+
+        .action-icons-input {
+            display: flex;
+            gap: 15px;
+            color: var(--text-gray);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .action-icons-input i:hover {
+            color: var(--primary-purple);
+        }
+
+        .send-btn-circle {
+            width: 46px;
+            height: 46px;
+            background-color: var(--primary-purple);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: var(--neon-glow);
+            transition: transform 0.2s;
+        }
+
+        .send-btn-circle:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn-circle i {
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        /* --- Instant Photo Note Modal --- */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--neon-glow);
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: white;
+            outline: none;
+            text-align: center;
+            font-size: 1rem;
+            margin: 15px 0;
+        }
+
+        .modal-btn {
+            padding: 10px 24px;
+            background-color: var(--primary-purple);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-modal {
+            color: var(--text-gray);
+            float: left;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- 1. AUTHENTICATION SCREEN -->
+        <div id="login-screen" class="screen active">
+            <div class="logo-area">
+                <div class="logo-text">BOUROUA <i class="fa-solid fa-crown logo-crown"></i></div>
+                <div class="logo-sub">NEON CONNECT</div>
+            </div>
+
+            <div class="auth-card">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchAuthTab('login')">تسجيل دخول</button>
+                    <button class="tab-btn" onclick="switchAuthTab('signup')">حساب جديد</button>
+                </div>
+
+                <!-- Login Fields -->
+                <div id="auth-form">
+                    <div class="input-box">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="username-input" placeholder="اسم المستخدم">
+                    </div>
+                    <div class="input-box" id="fullname-wrapper" style="display: none;">
+                        <i class="fa-solid fa-signature"></i>
+                        <input type="text" id="fullname-input" placeholder="الاسم الكامل">
+                    </div>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password-input" placeholder="كلمة المرور">
+                    </div>
+                    <button class="auth-btn" onclick="handleAuth()" id="submit-btn">دخول</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. DIRECT MESSAGES HOME -->
+        <div id="chat-home-screen" class="screen">
+            <div class="chat-header">
+                <div class="brand-logo">BOUROUA ✨</div>
+                <div class="header-actions">
+                    <i class="fa-solid fa-plus-circle" onclick="openNoteModal()" title="إضافة لقطة سريعة"></i>
+                    <i class="fa-solid fa-right-from-bracket" onclick="logout()" title="تسجيل خروج"></i>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="search-container">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass" style="color: var(--text-gray);"></i>
+                    <input type="text" id="search-users" placeholder="ابحث عن مسجلين الدخول..." oninput="filterUsers()">
+                </div>
+            </div>
+
+            <!-- Stories ("Instants") -->
+            <div class="stories-wrapper" id="stories-section">
+                <!-- User Note -->
+                <div class="story-item" onclick="openNoteModal()">
+                    <div class="story-ring my-note">
+                        <div class="story-img" id="my-avatar-story">أ</div>
+                        <div class="story-note" id="my-current-note">+ لقطة</div>
+                    </div>
+                    <div class="story-name">لقطتك</div>
+                </div>
+                <!-- Dynamic Stories will render here -->
+            </div>
+
+            <!-- Tabs -->
+            <div class="section-tabs">
+                <div class="section-tab-btn active">الرسائل المباشرة</div>
+                <div class="section-tab-btn">المسجلين حالياً</div>
+            </div>
+
+            <!-- Chat / Users List -->
+            <div class="chat-list-container" id="chat-list">
+                <!-- User rows will go here dynamically -->
+            </div>
+        </div>
+
+        <!-- 3. INDIVIDUAL CHAT ROOM -->
+        <div id="active-chat-screen" class="screen">
+            <div class="chat-room-header">
+                <div class="back-btn" onclick="goBackToHome()">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+                <div class="header-profile">
+                    <div class="chat-room-avatar" id="room-avatar">م</div>
+                    <div>
+                        <div class="room-user-name" id="room-user-name">اسم المستخدم</div>
+                        <div class="room-status" id="room-status">متصل الآن</div>
+                    </div>
+                </div>
+                <div class="header-actions" style="font-size: 1.1rem; color: var(--text-gray);">
+                    <i class="fa-solid fa-phone"></i>
+                    <i class="fa-solid fa-video" style="margin-right: 15px;"></i>
+                </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="messages-container" id="message-stream">
+                <!-- Dynamic Chat bubbles render here -->
+            </div>
+
+            <!-- Typing Action Area -->
+            <div class="chat-input-area">
+                <div class="input-bar-container">
+                    <input type="text" id="msg-input" placeholder="اكتب رسالتك..." onkeypress="handleKeyPress(event)">
+                    <div class="action-icons-input">
+                        <i class="fa-solid fa-microphone"></i>
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                </div>
+                <div class="send-btn-circle" onclick="sendDirectMessage()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Note Modal -->
+        <div id="note-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeNoteModal()">&times;</span>
+                <h3 style="margin-bottom: 10px;">انشر لقطة خاطفة (Instant)</h3>
+                <p style="font-size: 0.85rem; color: var(--text-gray);">ستظهر لقطتك السريعة كفقاعة دائرية فوق حسابك لكل الأصدقاء!</p>
+                <input type="text" id="note-text" placeholder="ما هي حالتك الخاطفة الآن؟" maxlength="20">
+                <button class="modal-btn" onclick="saveMyNote()">تحديث الحالة</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script to simulate real multiplayer accounts using localStorage -->
+    <script>
+        let currentAuthMode = 'login';
+        let currentUser = null;
+        let activeChatRecipient = null;
+
+        // Default seed accounts so the application is not empty upon first load
+        const defaultAccounts = [
+            { username: 'bouroua', fullname: 'BOUROUA (المطور)', password: '123', note: 'مطور هذا التطبيق 👑', avatarColor: '#a855f7' },
+            { username: 'aimen', fullname: 'أيمن بريك', password: '123', note: 'عاشق التقنية 💻', avatarColor: '#3b82f6' },
+            { username: 'yasmine', fullname: 'ياسمين', password: '123', note: 'متصلة بالأنترنت ⚡', avatarColor: '#ec4899' },
+            { username: 'skander', fullname: 'اسكندر', password: '123', note: 'مستعد للتحدي 🔥', avatarColor: '#10b981' }
+        ];
+
+        // Seed default chat histories to make it feel alive
+        const defaultChats = [
+            { sender: 'bouroua', receiver: 'aimen', text: 'أهلاً بك يا أيمن في واجهتك العصريّة الجديدة! 💜', time: '10:30 م', reacted: true },
+            { sender: 'aimen', receiver: 'bouroua', text: 'أهلاً بك! الواجهة تبدو خرافية وجميلة جداً ومناسبة للهواتف.', time: '10:32 م', reacted: false },
+            { sender: 'yasmine', receiver: 'aimen', text: 'مرحباً، هل قمت بنشر هذا التطبيق على غيت هاب؟', time: '09:15 م', reacted: false }
+        ];
+
+        // Initialize localStorage if empty
+        if (!localStorage.getItem('b_users')) {
+            localStorage.setItem('b_users', JSON.stringify(defaultAccounts));
+        }
+        if (!localStorage.getItem('b_chats')) {
+            localStorage.setItem('b_chats', JSON.stringify(defaultChats));
+        }
+
+        // --- Auth Switching ---
+        function switchAuthTab(mode) {
+            currentAuthMode = mode;
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const fullnameWrapper = document.getElementById('fullname-wrapper');
+            const submitBtn = document.getElementById('submit-btn');
+
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            if (mode === 'login') {
+                tabBtns[0].classList.add('active');
+                fullnameWrapper.style.display = 'none';
+                submitBtn.innerText = 'دخول';
+            } else {
+                tabBtns[1].classList.add('active');
+                fullnameWrapper.style.display = 'block';
+                submitBtn.innerText = 'إنشاء حساب ودخول';
+            }
+        }
+
+        // --- Authenticate Users ---
+        function handleAuth() {
+            const username = document.getElementById('username-input').value.trim().toLowerCase();
+            const fullname = document.getElementById('fullname-input').value.trim();
+            const password = document.getElementById('password-input').value;
+
+            if (!username || !password) {
+                alert('الرجاء ملء كافة الخانات المطلوبة!');
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('b_users'));
+
+            if (currentAuthMode === 'login') {
+                const found = users.find(u => u.username === username && u.password === password);
+                if (found) {
+                    currentUser = found;
+                } else {
+                    alert('اسم المستخدم أو كلمة المرور غير صحيحة!');
+                    return;
+                }
+            } else {
+                // Sign up
+                if (!fullname) {
+                    alert('الرجاء كتابة الاسم الكامل!');
+                    return;
+                }
+                const exists = users.find(u => u.username === username);
+                if (exists) {
+                    alert('اسم المستخدم محجوز بالفعل! اختر اسماً آخر.');
+                    return;
+                }
+
+                const colors = ['#a855f7', '#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#ef4444'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+                const newUser = {
+                    username: username,
+                    fullname: fullname,
+                    password: password,
+                    note: 'متوفر الآن ✨',
+                    avatarColor: randomColor
+                };
+
+                users.push(newUser);
+                localStorage.setItem('b_users', JSON.stringify(users));
+                currentUser = newUser;
+            }
+
+            // Logged in successfully
+            document.getElementById('login-screen').classList.remove('active');
+            document.getElementById('chat-home-screen').classList.add('active');
+            
+            // Set User Details
+            document.getElementById('my-avatar-story').innerText = currentUser.fullname.charAt(0);
+            document.getElementById('my-avatar-story').style.backgroundColor = currentUser.avatarColor;
+            document.getElementById('my-current-note').innerText = currentUser.note || '+ لقطة';
+
+            renderStories();
+            renderUsersList();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('chat-home-screen').classList.remove('active');
+            document.getElementById('login-screen').classList.add('active');
+            document.getElementById('username-input').value = '';
+            document.getElementById('fullname-input').value = '';
+            document.getElementById('password-input').value = '';
+        }
+
+        // --- Render Stories ---
+        function renderStories() {
+            const users = JSON.parse(localStorage.getItem('b_users'));
+            const container = document.getElementById('stories-section');
+            
+            // Keep the user's first story item, clear others
+            const myStory = container.firstElementChild;
+            container.innerHTML = '';
+            container.appendChild(myStory);
+
+            users.forEach(u => {
+                if (u.username === currentUser.username) return; // Skip myself
+
+                if (u.note) {
+                    const storyDiv = document.createElement('div');
+                    storyDiv.className = 'story-item';
+                    storyDiv.onclick = () => openDirectChat(u.username);
+                    storyDiv.innerHTML = `
+                        <div class="story-ring">
+                            <div class="story-img" style="background-color: ${u.avatarColor}">${u.fullname.charAt(0)}</div>
+                            <div class="story-note">${u.note}</div>
+                        </div>
+                        <div class="story-name">${u.fullname}</div>
+                    `;
+                    container.appendChild(storyDiv);
+                }
+            });
+        }
+
+        // --- Render Chat List ---
+        function renderUsersList() {
+            const users = JSON.parse(localStorage.getItem('b_users'));
+            const chats = JSON.parse(localStorage.getItem('b_chats'));
+            const container = document.getElementById('chat-list');
+            container.innerHTML = '';
+
+            users.forEach(u => {
+                if (u.username === currentUser.username) return; // Skip me
+
+                // Get last message between me and this user
+                const convo = chats.filter(c => 
+                    (c.sender === currentUser.username && c.receiver === u.username) || 
+                    (c.sender === u.username && c.receiver === currentUser.username)
+                );
+                
+                let lastMsgText = "لا توجد رسائل بينكما، ابدأ المحادثة الآن!";
+                let lastTime = "";
+                if (convo.length > 0) {
+                    const lastMsgObj = convo[convo.length - 1];
+                    lastMsgText = lastMsgObj.sender === currentUser.username ? `أنت: ${lastMsgObj.text}` : lastMsgObj.text;
+                    lastTime = lastMsgObj.time;
+                }
+
+                const userRow = document.createElement('div');
+                userRow.className = 'user-row';
+                userRow.onclick = () => openDirectChat(u.username);
+                userRow.innerHTML = `
+                    <div class="user-avatar-wrapper">
+                        <div class="user-avatar" style="background-color: ${u.avatarColor}">${u.fullname.charAt(0)}</div>
+                        <div class="active-dot"></div>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name-time">
+                            <span class="user-fullname">${u.fullname}</span>
+                            <span class="msg-time">${lastTime}</span>
+                        </div>
+                        <div class="last-msg">${lastMsgText}</div>
+                    </div>
+                `;
+                container.appendChild(userRow);
+            });
+        }
+
+        // --- Search and Filter Users ---
+        function filterUsers() {
+            const query = document.getElementById('search-users').value.toLowerCase();
+            const rows = document.querySelectorAll('.user-row');
+            
+            rows.forEach(row => {
+                const name = row.querySelector('.user-fullname').innerText.toLowerCase();
+                if (name.includes(query)) {
+                    row.style.display = 'flex';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // --- Open Direct Chat Room ---
+        function openDirectChat(recipientUsername) {
+            const users = JSON.parse(localStorage.getItem('b_users'));
+            const recipientObj = users.find(u => u.username === recipientUsername);
+
+            if (!recipientObj) return;
+
+            activeChatRecipient = recipientObj;
+
+            // Switch screens
+            document.getElementById('chat-home-screen').classList.remove('active');
+            document.getElementById('active-chat-screen').classList.add('active');
+
+            // Header info
+            document.getElementById('room-user-name').innerText = activeChatRecipient.fullname;
+            document.getElementById('room-avatar').innerText = activeChatRecipient.fullname.charAt(0);
+            document.getElementById('room-avatar').style.backgroundColor = activeChatRecipient.avatarColor;
+
+            renderMessages();
+        }
+
+        function goBackToHome() {
+            activeChatRecipient = null;
+            document.getElementById('active-chat-screen').classList.remove('active');
+            document.getElementById('chat-home-screen').classList.add('active');
+            renderUsersList();
+        }
+
+        // --- Render Messages Stream ---
+        function renderMessages() {
+            const chats = JSON.parse(localStorage.getItem('b_chats'));
+            const stream = document.getElementById('message-stream');
+            stream.innerHTML = '';
+
+            const conversation = chats.filter(c => 
+                (c.sender === currentUser.username && c.receiver === activeChatRecipient.username) || 
+                (c.sender === activeChatRecipient.username && c.receiver === currentUser.username)
+            );
+
+            conversation.forEach((msg, index) => {
+                const wrapper = document.createElement('div');
+                const isMyMessage = msg.sender === currentUser.username;
+                
+                // direction based on incoming vs outgoing
+                wrapper.className = isMyMessage ? 'message-wrapper outgoing' : 'message-wrapper incoming';
+
+                // Message Box
+                const msgBox = document.createElement('div');
+                msgBox.className = 'message-box';
+                msgBox.innerText = msg.text;
+
+                // Heart reaction
+                const heart = document.createElement('div');
+                heart.className = 'msg-heart-reaction';
+                heart.innerText = msg.reacted ? '❤️' : '🤍';
+                heart.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleMessageReaction(msg);
+                };
+                msgBox.appendChild(heart);
+
+                wrapper.appendChild(msgBox);
+                stream.appendChild(wrapper);
+            });
+
+            // Auto Scroll to Bottom
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        // --- Send Messages ---
+        function sendDirectMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const chats = JSON.parse(localStorage.getItem('b_chats'));
+            
+            // Format time
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // key 12 instead of 0
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            const timeString = `${hours}:${minutes} ${ampm}`;
+
+            const newMsg = {
+                sender: currentUser.username,
+                receiver: activeChatRecipient.username,
+                text: text,
+                time: timeString,
+                reacted: false
+            };
+
+            chats.push(newMsg);
+            localStorage.setItem('b_chats', JSON.stringify(chats));
+            input.value = '';
+
+            renderMessages();
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendDirectMessage();
+            }
+        }
+
+        // --- Toggle Message Heart Reaction ---
+        function toggleMessageReaction(targetMsg) {
+            let chats = JSON.parse(localStorage.getItem('b_chats'));
+            // Find exactly matching message object
+            const found = chats.find(c => 
+                c.sender === targetMsg.sender && 
+                c.receiver === targetMsg.receiver && 
+                c.text === targetMsg.text && 
+                c.time === targetMsg.time
+            );
+
+            if (found) {
+                found.reacted = !found.reacted;
+                localStorage.setItem('b_chats', JSON.stringify(chats));
+                renderMessages();
+            }
+        }
+
+        // --- Instant Notes (Stories) Modal Actions ---
+        function openNoteModal() {
+            document.getElementById('note-modal').classList.add('active');
+        }
+
+        function closeNoteModal() {
+            document.getElementById('note-modal').classList.remove('active');
+        }
+
+        function saveMyNote() {
+            const noteText = document.getElementById('note-text').value.trim();
+            if (!noteText) return;
+
+            let users = JSON.parse(localStorage.getItem('b_users'));
+            const me = users.find(u => u.username === currentUser.username);
+            
+            if (me) {
+                me.note = noteText;
+                currentUser.note = noteText;
+                localStorage.setItem('b_users', JSON.stringify(users));
+                
+                document.getElementById('my-current-note').innerText = noteText;
+                renderStories();
+                closeNoteModal();
+            }
+        }
+    </script>
+</body>
+</html>
