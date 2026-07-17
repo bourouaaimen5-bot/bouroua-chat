@@ -158,7 +158,6 @@
             box-shadow: var(--neon-glow);
         }
 
-        /* --- Main App Layout --- */
         .chat-header {
             padding: 15px;
             display: flex;
@@ -288,7 +287,6 @@
             color: var(--text-gray);
         }
 
-        /* --- Chat Room --- */
         .chat-room-header {
             padding: 15px;
             display: flex;
@@ -366,7 +364,6 @@
             cursor: pointer;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: absolute;
@@ -475,33 +472,30 @@
 
     </div>
 
-    <script>
+    <!-- استدعاء Firebase السحابي المباشر -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAv9vBIVgUOY2qvqfH0oFMnFMCexTxGk7w",
+            authDomain: "bouroua-chat.firebaseapp.com",
+            projectId: "bouroua-chat",
+            storageBucket: "bouroua-chat.appspot.com",
+            messagingSenderId: "574671036262",
+            appId: "1:574671036262:web:9b7920b0bf945a5f7a32a7",
+            databaseURL: "https://bouroua-chat-default-rtdb.firebaseio.com/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
         let mode = 'login';
         let currentUser = null;
         let activeRecipient = null;
+        let allUsers = [];
 
-        // حسابات وهمية افتراضية جاهزة للعمل فوراً
-        let defaultUsers = [
-            { username: 'bouroua', fullname: 'المطور بوروبا', password: '123', note: 'مطور التطبيق 👑', color: '#a855f7' },
-            { username: 'aimen', fullname: 'أيمن بريك', password: '123', note: 'تصفح نيون 💻', color: '#3b82f6' },
-            { username: 'yasmine', fullname: 'ياسمين', password: '123', note: 'أهلاً بالجميع ⚡', color: '#ec4899' }
-        ];
-
-        let defaultChats = [
-            { sender: 'bouroua', receiver: 'aimen', text: 'مرحباً بك في واجهتك العصرية المصلحة بالكامل! 💜' },
-            { sender: 'aimen', receiver: 'bouroua', text: 'شكراً لك، الآن تعمل بسرعة فائقة!' }
-        ];
-
-        function getDB(key, fallback) {
-            let data = localStorage.getItem(key);
-            if(!data) {
-                localStorage.setItem(key, JSON.stringify(fallback));
-                return fallback;
-            }
-            return JSON.parse(data);
-        }
-
-        function switchTab(t) {
+        window.switchTab = function(t) {
             mode = t;
             document.getElementById('t-login').classList.toggle('active', t === 'login');
             document.getElementById('t-signup').classList.toggle('active', t === 'signup');
@@ -509,67 +503,90 @@
             document.getElementById('submit-btn').innerText = t === 'login' ? 'دخول' : 'إنشاء حساب ودخول';
         }
 
-        function handleAuth() {
+        window.handleAuth = function() {
             let userIn = document.getElementById('username-input').value.trim().toLowerCase();
             let fullIn = document.getElementById('fullname-input').value.trim();
             let passIn = document.getElementById('password-input').value;
 
             if(!userIn || !passIn) { alert('يرجى ملء البيانات!'); return; }
 
-            let users = getDB('c_users', defaultUsers);
+            const userRef = ref(db, 'users/' + userIn);
 
             if(mode === 'login') {
-                let found = users.find(u => u.username === userIn && u.password === passIn);
-                if(found) { currentUser = found; } else { alert('خطأ في البيانات!'); return; }
+                get(userRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        let userData = snapshot.val();
+                        if(userData.password === passIn) {
+                            currentUser = userData;
+                            enterApp();
+                        } else { alert('كلمة المرور خاطئة!'); }
+                    } else { alert('اسم المستخدم غير موجود!'); }
+                });
             } else {
                 if(!fullIn) { alert('اكتب الاسم الكامل!'); return; }
-                if(users.find(u => u.username === userIn)) { alert('الاسم محجوز!'); return; }
-                
-                currentUser = { username: userIn, fullname: fullIn, password: passIn, note: 'متصل ✨', color: '#a855f7' };
-                users.push(currentUser);
-                localStorage.setItem('c_users', JSON.stringify(users));
+                get(userRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        alert('اسم المستخدم محجوز بالفعل!');
+                    } else {
+                        const colors = ['#a855f7', '#3b82f6', '#ec4899', '#10b981', '#f59e0b'];
+                        let randomColor = colors[Math.floor(Math.random() * colors.length)];
+                        
+                        currentUser = { username: userIn, fullname: fullIn, password: passIn, note: 'متصل أونلاين ⚡', color: randomColor };
+                        set(ref(db, 'users/' + userIn), currentUser).then(() => {
+                            enterApp();
+                        });
+                    }
+                });
             }
+        }
 
-            // الانتقال للشاشة الرئيسية بعد النجاح
+        function enterApp() {
             document.getElementById('login-screen').classList.remove('active');
             document.getElementById('chat-home-screen').classList.add('active');
             
             document.getElementById('my-avatar').innerText = currentUser.fullname.charAt(0);
             document.getElementById('my-note').innerText = currentUser.note || '+ لقطة';
 
-            loadHomeData();
+            listenToUpdates();
+        }
+
+        function listenToUpdates() {
+            onValue(ref(db, 'users'), (snapshot) => {
+                allUsers = [];
+                if(snapshot.exists()) {
+                    let data = snapshot.val();
+                    for(let key in data) { allUsers.push(data[key]); }
+                }
+                loadHomeData();
+            });
+
+            onValue(ref(db, 'chats'), () => {
+                loadHomeData();
+                if(activeRecipient) { renderMessages(); }
+            });
         }
 
         function loadHomeData() {
-            let users = getDB('c_users', defaultUsers);
-            let chats = getDB('c_chats', defaultChats);
-            
-            // تحميل الحالات
             let storiesDiv = document.getElementById('other-stories');
-            storiesDiv.innerHTML = '';
-            users.forEach(u => {
-                if(u.username === currentUser.username) return;
+            if(storiesDiv) storiesDiv.innerHTML = '';
+
+            let listDiv = document.getElementById('chat-list');
+            if(listDiv) listDiv.innerHTML = '';
+
+            allUsers.forEach(u => {
+                if(!currentUser || u.username === currentUser.username) return;
+
                 let div = document.createElement('div');
                 div.className = 'story-item';
                 div.onclick = () => startChat(u);
                 div.innerHTML = `<div class="story-ring"><div class="story-img" style="background:${u.color}">${u.fullname.charAt(0)}</div><div class="story-note">${u.note || ''}</div></div><div class="story-name">${u.fullname}</div>`;
-                storiesDiv.appendChild(div);
-            });
-
-            // تحميل الحسابات للرسائل المباشرة
-            let listDiv = document.getElementById('chat-list');
-            listDiv.innerHTML = '';
-            users.forEach(u => {
-                if(u.username === currentUser.username) return;
-                
-                let last = chats.filter(c => (c.sender===currentUser.username && c.receiver===u.username) || (c.sender===u.username && c.receiver===currentUser.username));
-                let lastTxt = last.length > 0 ? last[last.length - 1].text : "اضغط لبدء دردشة فورية معك...";
+                if(storiesDiv) storiesDiv.appendChild(div);
 
                 let row = document.createElement('div');
                 row.className = 'user-row';
                 row.onclick = () => startChat(u);
-                row.innerHTML = `<div class="user-avatar" style="background:${u.color}">${u.fullname.charAt(0)}</div><div class="user-info"><span class="user-fullname">${u.fullname}</span><span class="last-msg">${lastTxt}</span></div>`;
-                listDiv.appendChild(row);
+                row.innerHTML = `<div class="user-avatar" style="background:${u.color}">${u.fullname.charAt(0)}</div><div class="user-info"><span class="user-fullname">${u.fullname}</span><span class="last-msg">اضغط لبدء دردشة حية ومشتركة...</span></div>`;
+                if(listDiv) listDiv.appendChild(row);
             });
         }
 
@@ -582,65 +599,70 @@
         }
 
         function renderMessages() {
-            let chats = getDB('c_chats', defaultChats);
-            let stream = document.getElementById('message-stream');
-            stream.innerHTML = '';
+            get(ref(db, 'chats')).then((snapshot) => {
+                let stream = document.getElementById('message-stream');
+                if(!stream) return;
+                stream.innerHTML = '';
 
-            let filtered = chats.filter(c => 
-                (c.sender === currentUser.username && c.receiver === activeRecipient.username) || 
-                (c.sender === activeRecipient.username && c.receiver === currentUser.username)
-            );
-
-            filtered.forEach(m => {
-                let side = m.sender === currentUser.username ? 'outgoing' : 'incoming';
-                let box = document.createElement('div');
-                box.className = `message-wrapper ${side}`;
-                box.innerHTML = `<div class="message-box">${m.text}</div>`;
-                stream.appendChild(box);
+                if(snapshot.exists()) {
+                    let data = snapshot.val();
+                    for(let key in data) {
+                        let m = data[key];
+                        if((m.sender === currentUser.username && m.receiver === activeRecipient.username) || 
+                           (m.sender === activeRecipient.username && m.receiver === currentUser.username)) {
+                            
+                            let side = m.sender === currentUser.username ? 'outgoing' : 'incoming';
+                            let box = document.createElement('div');
+                            box.className = `message-wrapper ${side}`;
+                            box.innerHTML = `<div class="message-box">${m.text}</div>`;
+                            stream.appendChild(box);
+                        }
+                    }
+                }
+                stream.scrollTop = stream.scrollHeight;
             });
-            stream.scrollTop = stream.scrollHeight;
         }
 
-        function sendMessage() {
+        window.sendMessage = function() {
             let input = document.getElementById('msg-input');
             let text = input.value.trim();
             if(!text) return;
 
-            let chats = getDB('c_chats', defaultChats);
-            chats.push({ sender: currentUser.username, receiver: activeRecipient.username, text: text });
-            localStorage.setItem('c_chats', JSON.stringify(chats));
-            
-            input.value = '';
-            renderMessages();
+            let chatsRef = ref(db, 'chats');
+            let newChatRef = push(chatsRef);
+            set(newChatRef, {
+                sender: currentUser.username,
+                receiver: activeRecipient.username,
+                text: text,
+                timestamp: Date.now()
+            }).then(() => {
+                input.value = '';
+                renderMessages();
+            });
         }
 
-        function backToHome() {
+        window.backToHome = function() {
             activeRecipient = null;
             document.getElementById('active-chat-screen').classList.remove('active');
             document.getElementById('chat-home-screen').classList.add('active');
             loadHomeData();
         }
 
-        function openModal() { document.getElementById('note-modal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('note-modal').style.display = 'none'; }
+        window.openModal = function() { document.getElementById('note-modal').style.display = 'flex'; }
+        window.closeModal = function() { document.getElementById('note-modal').style.display = 'none'; }
         
-        function saveNote() {
+        window.saveNote = function() {
             let txt = document.getElementById('note-input').value.trim();
             if(!txt) return;
             
-            let users = getDB('c_users', defaultUsers);
-            let me = users.find(u => u.username === currentUser.username);
-            if(me) {
-                me.note = txt;
-                currentUser.note = txt;
-                localStorage.setItem('c_users', JSON.stringify(users));
+            currentUser.note = txt;
+            set(ref(db, 'users/' + currentUser.username + '/note'), txt).then(() => {
                 document.getElementById('my-note').innerText = txt;
-            }
-            closeModal();
-            loadHomeData();
+                closeModal();
+            });
         }
 
-        function logout() {
+        window.logout = function() {
             currentUser = null;
             document.getElementById('chat-home-screen').classList.remove('active');
             document.getElementById('login-screen').classList.add('active');
