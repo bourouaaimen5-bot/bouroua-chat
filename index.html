@@ -811,11 +811,23 @@
             { sender: 'yasmine', receiver: 'aimen', text: 'مرحباً، هل قمت بنشر هذا التطبيق على غيت هاب؟', time: '09:15 م', reacted: false }
         ];
 
-        if (!localStorage.getItem('b_users')) {
-            localStorage.setItem('b_users', JSON.stringify(defaultAccounts));
+        // حماية مضافة لفحص وضمان وجود البيانات دائماً عند بدء التشغيل لمنع أي شاشة سوداء
+        function getStoredUsers() {
+            let u = localStorage.getItem('b_users');
+            if(!u) {
+                localStorage.setItem('b_users', JSON.stringify(defaultAccounts));
+                return defaultAccounts;
+            }
+            return JSON.parse(u);
         }
-        if (!localStorage.getItem('b_chats')) {
-            localStorage.setItem('b_chats', JSON.stringify(defaultChats));
+
+        function getStoredChats() {
+            let c = localStorage.getItem('b_chats');
+            if(!c) {
+                localStorage.setItem('b_chats', JSON.stringify(defaultChats));
+                return defaultChats;
+            }
+            return JSON.parse(c);
         }
 
         function switchAuthTab(mode) {
@@ -846,7 +858,7 @@
                 return;
             }
 
-            let users = JSON.parse(localStorage.getItem('b_users'));
+            let users = getStoredUsers();
 
             if (currentAuthMode === 'login') {
                 const found = users.find(u => u.username === username && u.password === password);
@@ -904,15 +916,16 @@
         }
 
         function renderStories() {
-            const users = JSON.parse(localStorage.getItem('b_users'));
+            const users = getStoredUsers();
             const container = document.getElementById('stories-section');
+            if(!container) return;
             
             const myStory = container.firstElementChild;
             container.innerHTML = '';
-            container.appendChild(myStory);
+            if(myStory) container.appendChild(myStory);
 
             users.forEach(u => {
-                if (u.username === currentUser.username) return;
+                if (!currentUser || u.username === currentUser.username) return;
 
                 if (u.note) {
                     const storyDiv = document.createElement('div');
@@ -931,13 +944,14 @@
         }
 
         function renderUsersList() {
-            const users = JSON.parse(localStorage.getItem('b_users'));
-            const chats = JSON.parse(localStorage.getItem('b_chats'));
+            const users = getStoredUsers();
+            const chats = getStoredChats();
             const container = document.getElementById('chat-list');
+            if(!container) return;
             container.innerHTML = '';
 
             users.forEach(u => {
-                if (u.username === currentUser.username) return;
+                if (!currentUser || u.username === currentUser.username) return;
 
                 const convo = chats.filter(c => 
                     (c.sender === currentUser.username && c.receiver === u.username) || 
@@ -987,7 +1001,7 @@
         }
 
         function openDirectChat(recipientUsername) {
-            const users = JSON.parse(localStorage.getItem('b_users'));
+            const users = getStoredUsers();
             const recipientObj = users.find(u => u.username === recipientUsername);
 
             if (!recipientObj) return;
@@ -1012,8 +1026,9 @@
         }
 
         function renderMessages() {
-            const chats = JSON.parse(localStorage.getItem('b_chats'));
+            const chats = getStoredChats();
             const stream = document.getElementById('message-stream');
+            if(!stream) return;
             stream.innerHTML = '';
 
             const conversation = chats.filter(c => 
@@ -1053,7 +1068,7 @@
 
             if (!text) return;
 
-            const chats = JSON.parse(localStorage.getItem('b_chats'));
+            const chats = getStoredChats();
             
             const now = new Date();
             let hours = now.getHours();
@@ -1086,7 +1101,7 @@
         }
 
         function toggleMessageReaction(targetMsg) {
-            let chats = JSON.parse(localStorage.getItem('b_chats'));
+            let chats = getStoredChats();
             const found = chats.find(c => 
                 c.sender === targetMsg.sender && 
                 c.receiver === targetMsg.receiver && 
@@ -1113,7 +1128,7 @@
             const noteText = document.getElementById('note-text').value.trim();
             if (!noteText) return;
 
-            let users = JSON.parse(localStorage.getItem('b_users'));
+            let users = getStoredUsers();
             const me = users.find(u => u.username === currentUser.username);
             
             if (me) {
