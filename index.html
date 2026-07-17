@@ -475,7 +475,7 @@
     <!-- استدعاء Firebase السحابي المباشر -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAv9vBIVgUOY2qvqfH0oFMnFMCexTxGk7w",
@@ -484,7 +484,7 @@
             storageBucket: "bouroua-chat.appspot.com",
             messagingSenderId: "574671036262",
             appId: "1:574671036262:web:9b7920b0bf945a5f7a32a7",
-            databaseURL: "https://bouroua-chat-default-rtdb.firebaseio.com/"
+            databaseURL: "https://bouroua-chat-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -508,7 +508,7 @@
             let fullIn = document.getElementById('fullname-input').value.trim();
             let passIn = document.getElementById('password-input').value;
 
-            if(!userIn || !passIn) { alert('يرجى ملء البيانات!'); return; }
+            if(!userIn || !passIn) { alert('يرجى ملء كافة البيانات!'); return; }
 
             const userRef = ref(db, 'users/' + userIn);
 
@@ -521,12 +521,14 @@
                             enterApp();
                         } else { alert('كلمة المرور خاطئة!'); }
                     } else { alert('اسم المستخدم غير موجود!'); }
+                }).catch(err => {
+                    alert("خطأ في الاتصال بقاعدة البيانات! تأكد من تفعيل Realtime Database وقواعد الحماية:\n" + err.message);
                 });
             } else {
-                if(!fullIn) { alert('اكتب الاسم الكامل!'); return; }
+                if(!fullIn) { alert('اكتب الاسم الكامل أولاً!'); return; }
                 get(userRef).then((snapshot) => {
                     if (snapshot.exists()) {
-                        alert('اسم المستخدم محجوز بالفعل!');
+                        alert('اسم المستخدم محجوز بالفعل! اختر اسماً آخر.');
                     } else {
                         const colors = ['#a855f7', '#3b82f6', '#ec4899', '#10b981', '#f59e0b'];
                         let randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -534,8 +536,12 @@
                         currentUser = { username: userIn, fullname: fullIn, password: passIn, note: 'متصل أونلاين ⚡', color: randomColor };
                         set(ref(db, 'users/' + userIn), currentUser).then(() => {
                             enterApp();
+                        }).catch(err => {
+                            alert("فشل إنشاء الحساب! يرجى التأكد من اختيارك لـ (Mode Test) في قواعد حماية الـ Realtime Database داخل موقع Firebase.\nالخطأ: " + err.message);
                         });
                     }
+                }).catch(err => {
+                    alert("خطأ أثناء فحص الحساب! تأكد من تفعيل الـ Realtime Database بالكامل في الفايربيس.\nالخطأ: " + err.message);
                 });
             }
         }
@@ -638,7 +644,7 @@
             }).then(() => {
                 input.value = '';
                 renderMessages();
-            });
+            }).catch(err => alert("فشل إرسال الرسالة: " + err.message));
         }
 
         window.backToHome = function() {
@@ -659,7 +665,7 @@
             set(ref(db, 'users/' + currentUser.username + '/note'), txt).then(() => {
                 document.getElementById('my-note').innerText = txt;
                 closeModal();
-            });
+            }).catch(err => alert("فشل تحديث الحالة: " + err.message));
         }
 
         window.logout = function() {
